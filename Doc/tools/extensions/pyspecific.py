@@ -27,7 +27,8 @@ try:
 except ImportError:
     from sphinx.environment import NoUri
 from sphinx.locale import translators
-from sphinx.util import status_iterator, logging
+from sphinx.util import logging
+from sphinx.util import status_iterator
 from sphinx.util.nodes import split_explicit_title
 from sphinx.writers.text import TextWriter, TextTranslator
 from sphinx.writers.latex import LaTeXTranslator
@@ -41,7 +42,9 @@ except ImportError:
 # Support for checking for suspicious markup
 
 import suspicious
+import sphinx.locale as lc
 
+lc.init(".", None)
 
 ISSUE_URI = 'https://bugs.python.org/issue%s'
 SOURCE_URI = 'https://github.com/python/cpython/tree/3.10/%s'
@@ -87,7 +90,7 @@ class ImplementationDetail(Directive):
 
     def run(self):
         pnode = nodes.compound(classes=['impl-detail'])
-        label = translators['sphinx'].gettext(self.label_text)
+        label = translators[('general','sphinx')].gettext(self.label_text)
         content = self.content
         add_text = nodes.strong(label, label)
         if self.arguments:
@@ -189,7 +192,7 @@ class AuditEvent(Directive):
         else:
             args = []
 
-        label = translators['sphinx'].gettext(self._label[min(2, len(args))])
+        label = translators[('general','sphinx')].gettext(self._label[min(2, len(args))])
         text = label.format(name="``{}``".format(name),
                             args=", ".join("``{}``".format(a) for a in args if a))
 
@@ -368,7 +371,7 @@ class DeprecatedRemoved(Directive):
         else:
             label = self._removed_label
 
-        label = translators['sphinx'].gettext(label)
+        label = translators[('general','sphinx')].gettext(label)
         text = label.format(deprecated=self.arguments[0], removed=self.arguments[1])
         if len(self.arguments) == 3:
             inodes, messages = self.state.inline_text(self.arguments[2],

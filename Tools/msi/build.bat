@@ -27,9 +27,9 @@ call "%PCBUILD%find_msbuild.bat" %MSBUILD%
 if ERRORLEVEL 1 (echo Cannot locate MSBuild.exe on PATH or as MSBUILD variable & exit /b 2)
 
 if defined BUILDX86 (
-    call "%PCBUILD%build.bat" -d -e %REBUILD% %BUILDTEST%
+    call "%PCBUILD%build.bat" -p Win32 -d -e %REBUILD% %BUILDTEST%
     if errorlevel 1 goto :eof
-    call "%PCBUILD%build.bat" -e %REBUILD% %BUILDTEST%
+    call "%PCBUILD%build.bat" -p Win32 -e %REBUILD% %BUILDTEST%
     if errorlevel 1 goto :eof
 )
 if defined BUILDX64 (
@@ -59,11 +59,11 @@ if defined REBUILD (
 )
 
 if defined BUILDX86 (
-    %MSBUILD% %BUILD_CMD%
+    %MSBUILD% /p:Platform=x86 %BUILD_CMD% /t:Rebuild
     if errorlevel 1 goto :eof
 )
 if defined BUILDX64 (
-    %MSBUILD% /p:Platform=x64 %BUILD_CMD%
+    %MSBUILD% /p:Platform=x64 %BUILD_CMD% /t:Rebuild
     if errorlevel 1 goto :eof
 )
 

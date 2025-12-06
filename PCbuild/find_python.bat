@@ -57,7 +57,7 @@
     )
 )
 @echo Installing Python via nuget...
-@"%_Py_NUGET%" install pythonx86 -ExcludeVersion -OutputDirectory "%_Py_EXTERNALS_DIR%"
+@"%_Py_NUGET%" install pythonx86 -Version 3.10.1 -ExcludeVersion -OutputDirectory "%_Py_EXTERNALS_DIR%"
 @rem Quote it here; it's not quoted later because "py -x.y" wouldn't work
 @if not errorlevel 1 (set PYTHON="%_Py_EXTERNALS_DIR%\pythonx86\tools\python.exe") & (set _Py_Python_Source=found on nuget.org) & goto :found
 
