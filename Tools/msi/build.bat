@@ -9,6 +9,7 @@ set BUILDDOC=
 set BUILDTEST=
 set BUILDPACK=
 set REBUILD=
+set toolver=v142
 
 :CheckOpts
 if "%~1" EQU "-h" goto Help
@@ -19,6 +20,8 @@ if "%~1" EQU "--no-test-marker" (set BUILDTEST=) && shift && goto CheckOpts
 if "%~1" EQU "--test-marker" (set BUILDTEST=--test-marker) && shift && goto CheckOpts
 if "%~1" EQU "--pack" (set BUILDPACK=1) && shift && goto CheckOpts
 if "%~1" EQU "-r" (set REBUILD=-r) && shift && goto CheckOpts
+if "%~1" EQU "-rr" (set REREBUILD=/t:Rebuild) && shift && goto CheckOpts
+if "%~1" EQU "--tools-version" (set toolver=%2) & shift & shift & goto CheckOpts
 
 if not defined BUILDX86 if not defined BUILDX64 (set BUILDX86=1) && (set BUILDX64=1)
 
@@ -27,15 +30,15 @@ call "%PCBUILD%find_msbuild.bat" %MSBUILD%
 if ERRORLEVEL 1 (echo Cannot locate MSBuild.exe on PATH or as MSBUILD variable & exit /b 2)
 
 if defined BUILDX86 (
-    call "%PCBUILD%build.bat" -p Win32 -d -e %REBUILD% %BUILDTEST%
+    call "%PCBUILD%build.bat" -p Win32 --tools-version %toolver% -d -e %REBUILD% %BUILDTEST%
     if errorlevel 1 goto :eof
-    call "%PCBUILD%build.bat" -p Win32 -e %REBUILD% %BUILDTEST%
+    call "%PCBUILD%build.bat" -p Win32 --tools-version %toolver% -e %REBUILD% %BUILDTEST%
     if errorlevel 1 goto :eof
 )
 if defined BUILDX64 (
-    call "%PCBUILD%build.bat" -p x64 -d -e %REBUILD% %BUILDTEST%
+    call "%PCBUILD%build.bat" -p x64 --tools-version %toolver% -d -e %REBUILD% %BUILDTEST%
     if errorlevel 1 goto :eof
-    call "%PCBUILD%build.bat" -p x64 -e %REBUILD% %BUILDTEST%
+    call "%PCBUILD%build.bat" -p x64 --tools-version %toolver% -e %REBUILD% %BUILDTEST%
     if errorlevel 1 goto :eof
 )
 
@@ -45,32 +48,32 @@ if defined BUILDDOC (
 )
 
 rem Build the launcher MSI separately
-%MSBUILD% "%D%launcher\launcher.wixproj" /p:Platform=x86
+%MSBUILD% "%D%launcher\launcher.wixproj" /p:Platform=x86 %REREBUILD% /p:PlatformToolset=%toolver%
 
-set BUILD_CMD="%D%bundle\snapshot.wixproj"
+set BUILD_CMD="%D%bundle\snapshot.wixproj" /p:PlatformToolset=%toolver%
 if defined BUILDTEST (
     set BUILD_CMD=%BUILD_CMD% /p:UseTestMarker=true
 )
 if defined BUILDPACK (
     set BUILD_CMD=%BUILD_CMD% /p:Pack=true
 )
-if defined REBUILD (
+if defined REREBUILD (
     set BUILD_CMD=%BUILD_CMD% /t:Rebuild
 )
 
 if defined BUILDX86 (
-    %MSBUILD% /p:Platform=x86 %BUILD_CMD% /t:Rebuild
+    %MSBUILD% /p:Platform=x86 %BUILD_CMD%
     if errorlevel 1 goto :eof
 )
 if defined BUILDX64 (
-    %MSBUILD% /p:Platform=x64 %BUILD_CMD% /t:Rebuild
+    %MSBUILD% /p:Platform=x64 %BUILD_CMD%
     if errorlevel 1 goto :eof
 )
 
 exit /B 0
 
 :Help
-echo build.bat [-x86] [-x64] [--doc] [-h] [--test-marker] [--pack] [-r]
+echo build.bat [-x86] [-x64] [--doc] [-h] [--test-marker] [--pack] [-r] [-rr]
 echo.
 echo    -x86                Build x86 installers
 echo    -x64                Build x64 installers
@@ -78,4 +81,6 @@ echo    --doc               Build CHM documentation
 echo    --test-marker       Build with test markers
 echo    --no-test-marker    Build without test markers (default)
 echo    --pack              Embed core MSIs into installer
-echo    -r                  Rebuild rather than incremental build
+echo    -r                  Rebuild Python rather than incremental build
+echo    -rr                 Rebuild msi packages rather than incremental build
+echo    --tools-version     Set the builtools version (default to v142)

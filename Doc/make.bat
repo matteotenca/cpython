@@ -13,7 +13,7 @@ if not defined SPHINXBUILD (
     %PYTHON% -c "import sphinx" > nul 2> nul
     if errorlevel 1 (
         echo Installing sphinx with %PYTHON%
-        %PYTHON% -m pip install sphinx==5.2.1
+        %PYTHON% -m pip install --no-warn-script-location sphinx==5.2.1
         if errorlevel 1 exit /B
     )
     set SPHINXBUILD=%PYTHON% -c "import sphinx.cmd.build, sys; sys.exit(sphinx.cmd.build.main())"
@@ -22,7 +22,7 @@ if not defined SPHINXBUILD (
 %PYTHON% -c "import python_docs_theme" > nul 2> nul
 if errorlevel 1 (
     echo Installing python-docs-theme with %PYTHON%
-    %PYTHON% -m pip install python-docs-theme==2024.1
+    %PYTHON% -m pip install --no-warn-script-location python-docs-theme==2024.1
     if errorlevel 1 exit /B
 )
 
@@ -30,7 +30,7 @@ if not defined BLURB (
     %PYTHON% -c "import blurb" > nul 2> nul
     if errorlevel 1 (
         echo Installing blurb with %PYTHON%
-        %PYTHON% -m pip install blurb
+        %PYTHON% -m pip install --no-warn-script-location blurb
         if errorlevel 1 exit /B
     )
     set BLURB=%PYTHON% -m blurb

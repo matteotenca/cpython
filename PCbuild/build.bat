@@ -31,10 +31,11 @@ echo.  -vv Verbose output messages
 echo.  -q  Quiet output messages (errors and warnings only)
 echo.  -k  Attempt to kill any running Pythons before building (usually done
 echo.      automatically by the pythoncore project)
-echo.  --pgo          Build with Profile-Guided Optimization.  This flag
-echo.                 overrides -c and -d
-echo.  --test-marker  Enable the test marker within the build.
-echo.  --regen        Regenerate all opcodes, grammar and tokens.
+echo.  --pgo            Build with Profile-Guided Optimization.  This flag
+echo.                   overrides -c and -d
+echo.  --test-marker    Enable the test marker within the build.
+echo.  --regen          Regenerate all opcodes, grammar and tokens.
+echo.  --tools-version  Set the buildtools version (default to v142)
 echo.
 echo.Available flags to avoid building certain modules.
 echo.These flags have no effect if '-e' is not given:
@@ -64,6 +65,7 @@ set verbose=/nologo /v:m /clp:summary
 set kill=
 set do_pgo=
 set pgo_job=-m test --pgo
+set toolver=v142
 
 :CheckOpts
 if "%~1"=="-h" goto Usage
@@ -83,6 +85,7 @@ if "%~1"=="--pgo-job" (set do_pgo=true) & (set pgo_job=%~2) & shift & shift & go
 if "%~1"=="--test-marker" (set UseTestMarker=true) & shift & goto CheckOpts
 if "%~1"=="-V" shift & goto Version
 if "%~1"=="--regen" (set Regen=true) & shift & goto CheckOpts
+if "%~1"=="--tools-version" (set toolver=%2) & shift & shift & goto CheckOpts
 rem These use the actual property names used by MSBuild.  We could just let
 rem them in through the environment, but we specify them on the command line
 rem anyway for visibility so set defaults after this
@@ -148,6 +151,7 @@ goto :Build
 echo on
 %MSBUILD% "%dir%\pythoncore.vcxproj" /t:KillPython %verbose%^
  /p:Configuration=%conf% /p:Platform=%platf%^
+ /p:PlatformToolset=%toolver%^
  /p:KillPython=true
 
 @echo off
@@ -157,7 +161,7 @@ exit /B %ERRORLEVEL%
 echo on
 %MSBUILD% "%dir%\pythoncore.vcxproj" /t:Regen %verbose%^
  /p:Configuration=%conf% /p:Platform=%platf%^
- /p:ForceRegen=true
+ /p:ForceRegen=true /p:PlatformToolset=%toolver%
 
 @echo off
 exit /B %ERRORLEVEL%
@@ -170,7 +174,7 @@ echo on
 %MSBUILD% "%dir%pcbuild.proj" /t:%target% %parallel% %verbose%^
  /p:Configuration=%conf% /p:Platform=%platf%^
  /p:IncludeExternals=%IncludeExternals%^
- /p:IncludeCTypes=%IncludeCTypes%^
+ /p:IncludeCTypes=%IncludeCTypes% /p:PlatformToolset=%toolver%^
  /p:IncludeSSL=%IncludeSSL% /p:IncludeTkinter=%IncludeTkinter%^
  /p:UseTestMarker=%UseTestMarker% %GITProperty%^
  %1 %2 %3 %4 %5 %6 %7 %8 %9
@@ -182,5 +186,5 @@ exit /b %ERRORLEVEL%
 rem Display the current build version information
 call "%dir%find_msbuild.bat" %MSBUILD%
 if ERRORLEVEL 1 (echo Cannot locate MSBuild.exe on PATH or as MSBUILD variable & exit /b 2)
-%MSBUILD% "%dir%pythoncore.vcxproj" /t:ShowVersionInfo /v:m /nologo %1 %2 %3 %4 %5 %6 %7 %8 %9
+%MSBUILD% "%dir%pythoncore.vcxproj" /p:PlatformToolset=%toolver% /t:ShowVersionInfo /v:m /nologo %1 %2 %3 %4 %5 %6 %7 %8 %9
 if ERRORLEVEL 1 exit /b 3
